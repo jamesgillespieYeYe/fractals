@@ -22,12 +22,39 @@ app.layout = html.Div([
         dcc.Graph(
             id='mandlebrot'
             ),
+        html.Div([
+            html.H5('Pixel Density', style={'textAlign':'center', 'color':'white'}),
+            dcc.Slider(10, 120, 20,
+                value=40,
+                id='mandlebrot-density-selector'
+                ),
+
+        ]),
+        
     ], style={'display': 'inline-block', 'width': '49%', 'color':'black'}),
     html.Div([
         dcc.Graph(id='sequence'),
+        html.Div([
+            html.H5('Iterations', style={'textAlign':'center', 'color':'white'}),
+            dcc.Slider(10, 40, 1,
+                value=21,
+                marks=None,
+                tooltip={"placement": "bottom", "always_visible": True},
+                id='num-iterations-selector'
+                ),
+
+        ]),
     ], style={'display': 'inline-block', 'width': '49%'}),
     html.Div([
         dcc.Graph(id='julia'),
+        html.Div([
+            html.H5('Pixel Density', style={'textAlign':'center', 'color':'white'}),
+            dcc.Slider(10, 120, 20,
+                value=40,
+                id='julia-density-selector'
+                ),
+
+        ]),
     ], style={'display': 'inline-block', 'width': '49%'}),
     html.Button('Submit', id='submit-val', n_clicks=0),
     #dash.page_container
@@ -35,9 +62,10 @@ app.layout = html.Div([
 
 @app.callback(
     Output('julia', 'figure'),
-    Input('mandlebrot', 'hoverData')
+    Input('mandlebrot', 'hoverData'),
+    Input('julia-density-selector', 'value')
 )
-def gen_julia(hover_data):
+def gen_julia(hover_data, value):
     re = 0
     im = 0
     if (hover_data != None):
@@ -45,7 +73,7 @@ def gen_julia(hover_data):
         re = points['x']
         im = points['y']
     
-    c = fracts.complex_matrix(-2, 2, -2, 2, pixel_density=40)
+    c = fracts.complex_matrix(-2, 2, -2, 2, pixel_density=value)
     members = fracts.get_members_julia(c, parameter=complex(re, im), num_iterations=20)
     fig = px.scatter(x=members.real, y = members.imag, title='Julia')
 
@@ -56,16 +84,23 @@ def gen_julia(hover_data):
         xaxis_title="Re",
         yaxis_title="Im"
         )
-    fig.update_traces(marker_color='green', marker_size=2)
+    fig.update_traces(marker_color='green')
+    if (value >= 60):
+        fig.update_traces(marker_size=1)
+    elif (value <= 20):
+        fig.update_traces(marker_size=3)
+    else:
+        fig.update_traces(marker_size=2)
     return fig
 
 @app.callback(
     Output('mandlebrot', 'figure'),
-    Input('submit-val', 'n_clicks')
+    Input('mandlebrot-density-selector', 'value'),
+    Input('num-iterations-selector', 'value')
 )
-def gen_mandlebrot(value):
-    c = fracts.complex_matrix(-2, 0.5, -1.5, 1.5, pixel_density=40)
-    members = fracts.get_members(c, num_iterations=20)
+def gen_mandlebrot(density, iterations):
+    c = fracts.complex_matrix(-2, 0.5, -1.5, 1.5, pixel_density=density)
+    members = fracts.get_members(c, num_iterations=iterations)
     fig = px.scatter(x=members.real, y = members.imag, title='Mandlebrot')
 
     fig.update_layout(
@@ -75,14 +110,20 @@ def gen_mandlebrot(value):
         xaxis_title="Re",
         yaxis_title="Im"
         )
-    fig.update_traces(marker_size=2)
+    if (density >= 60):
+        fig.update_traces(marker_size=1)
+    elif (density <= 20):
+        fig.update_traces(marker_size=3)
+    else:
+        fig.update_traces(marker_size=2)
     return fig
 
 @app.callback(
     Output('sequence', 'figure'),
-    Input('mandlebrot', 'hoverData')
+    Input('mandlebrot', 'hoverData'),
+    Input('num-iterations-selector', 'value')
 )
-def gen_sequence(hover_data):
+def gen_sequence(hover_data, iterations):
     re = 0
     im = 0
     if (hover_data != None):
@@ -90,7 +131,7 @@ def gen_sequence(hover_data):
         re = points['x']
         im = points['y']
 
-    (xList, yList) = fracts.first_n_elements(complex(re, im), 10)
+    (xList, yList) = fracts.first_n_elements(complex(re, im), iterations)
     
     fig = px.scatter(x=xList, y=yList, title='Sequence')
 
