@@ -3,6 +3,7 @@ import os
 
 from dash import Dash, dcc, html
 from dash.dependencies import Input, Output
+import dash
 import plotly.express as px
 import pandas as pd
 
@@ -12,7 +13,8 @@ style_sheet = [os.path.join("assets", "style.css")]
 
 
 
-app = Dash(__name__, external_stylesheets=style_sheet)
+app = Dash(__name__, external_stylesheets=style_sheet, use_pages=True)
+server = app.server
 
 app.layout = html.Div([
     html.Div([
@@ -27,6 +29,7 @@ app.layout = html.Div([
         dcc.Graph(id='julia'),
     ], style={'display': 'inline-block', 'width': '49%'}),
     html.Button('Submit', id='submit-val', n_clicks=0),
+    dash.page_container
 ])
 
 @app.callback(
@@ -73,15 +76,11 @@ def gen_fractal(value):
         yaxis_title="Im"
         )
     fig.update_traces(marker_size=2)
-    #fig.update_traces(marker_size=5)
-
-    
-
     return fig
+
 @app.callback(
     Output('sequence', 'figure'),
     Input('fractal', 'hoverData')
-    
 )
 def gen_sequence(hover_data):
     re = 0
@@ -104,9 +103,6 @@ def gen_sequence(hover_data):
         )
 
     fig.update_traces(marker_color='red')
-
-    
-
     return fig
 
 
