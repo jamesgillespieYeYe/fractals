@@ -13,7 +13,8 @@ style_sheet = [os.path.join("assets", "style.css")]
 
 
 
-app = Dash(__name__, external_stylesheets=style_sheet, use_pages=True)
+#app = Dash(__name__, external_stylesheets=style_sheet, use_pages=True)
+app = Dash(__name__, external_stylesheets=style_sheet)
 server = app.server
 
 app.layout = html.Div([
@@ -29,7 +30,7 @@ app.layout = html.Div([
         dcc.Graph(id='julia'),
     ], style={'display': 'inline-block', 'width': '49%'}),
     html.Button('Submit', id='submit-val', n_clicks=0),
-    dash.page_container
+    #dash.page_container
 ])
 
 @app.callback(
