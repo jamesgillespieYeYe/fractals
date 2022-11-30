@@ -18,6 +18,7 @@ def get_members(c, num_iterations):
     mask = is_stable(c, num_iterations)
     return c[mask]
 
+#--------------------------------------------------------
 def is_stable_julia(candidates, parameter, num_iterations):
     z = candidates
     for _ in range(num_iterations):
@@ -28,6 +29,7 @@ def get_members_julia(candidates, parameter, num_iterations):
     mask = is_stable_julia(candidates, parameter, num_iterations)
     return candidates[mask]
 #--------------------------------------------------------
+
 def sequence(c, z=0):
     z = 0
     while True:

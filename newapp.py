@@ -45,8 +45,14 @@ def gen_julia(hover_data):
     members = fracts.get_members_julia(c, parameter=complex(re, im), num_iterations=20)
     fig = px.scatter(x=members.real, y = members.imag, title='Julia')
 
-    fig.update_layout(clickmode='event+select', plot_bgcolor='rgb(50, 50, 50)', paper_bgcolor="rgba(0, 0, 200, 0)")
-    fig.update_traces(marker_color='red')
+    fig.update_layout(
+        clickmode='event+select', 
+        plot_bgcolor='rgb(50, 50, 50)', 
+        paper_bgcolor="rgba(0, 0, 200, 0)",
+        xaxis_title="Re",
+        yaxis_title="Im"
+        )
+    fig.update_traces(marker_color='green')
     return fig
 
 @app.callback(
@@ -59,7 +65,13 @@ def gen_fractal(value):
     members = fracts.get_members(c, num_iterations=20)
     fig = px.scatter(x=members.real, y = members.imag, title='Fractal')
 
-    fig.update_layout(clickmode='event+select', plot_bgcolor='rgb(50, 50, 50)', paper_bgcolor="rgba(0, 0, 200, 0)")
+    fig.update_layout(
+        clickmode='event+select', 
+        plot_bgcolor='rgb(50, 50, 50)', 
+        paper_bgcolor="rgba(0, 0, 200, 0)",
+        xaxis_title="Re",
+        yaxis_title="Im"
+        )
 
     #fig.update_traces(marker_size=5)
 
@@ -83,7 +95,13 @@ def gen_sequence(hover_data):
     
     fig = px.scatter(x=xList, y=yList, title='Sequence')
 
-    fig.update_layout(clickmode='event+select', plot_bgcolor='rgb(50, 50, 50)', paper_bgcolor="rgba(0, 0, 200, 0)")
+    fig.update_layout(
+        clickmode='event+select', 
+        plot_bgcolor='rgb(50, 50, 50)', 
+        paper_bgcolor="rgba(0, 0, 200, 0)",
+        xaxis_title="Iteration",
+        yaxis_title="Magnitude"
+        )
 
     fig.update_traces(marker_color='red')
 
