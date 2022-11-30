@@ -6,142 +6,108 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 import pandas as pd
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+import fractals as fracts
+
 style_sheet = [os.path.join("assets", "style.css")]
+
+
 
 app = Dash(__name__, external_stylesheets=style_sheet)
 
-styles = {
-    'pre': {
-        'border': 'thin lightgrey solid',
-        'overflowX': 'scroll'
-    }
-}
-
-df = pd.DataFrame({
-    "x": [1,2,1,2],
-    "y": [1,2,3,4],
-    "customdata": [1,2,3,4],
-    "fruit": ["apple", "apple", "orange", "orange"]
-})
-
-fig = px.scatter(df, x="x", y="y", color="fruit", custom_data=["customdata"])
-
-fig.update_layout(clickmode='event+select')
-
-fig.update_traces(marker_size=20)
-
 app.layout = html.Div([
-    dcc.Graph(
-        id='basic-interactions'
-    ),
-    html.Div(className='row', children=[
-
-        html.Div([
-        html.H4('z',style={'display':'inline-block','margin-right':20}),
-        dcc.Input(id="z", type="text", placeholder="", debounce=True),
-        ], style={'display':'inline-block'}),
-        html.Div([
-        html.H4('iterations',style={'display':'inline-block','margin-right':20}),
-        dcc.Input(id="iterations", type="text", placeholder="", debounce=True),
-        ], style={'display':'inline-block'}),
-
-
-    ]
-    
-    ),
-   
-
-    html.Div(className='row', children=[
-        html.Div([
-            dcc.Markdown("""
-                **Hover Data**
-
-                Mouse over values in the graph.
-            """),
-            html.Pre(id='hover-data', style=styles['pre'])
-        ], className='three columns'),
-
-        html.Div([
-            dcc.Markdown("""
-                **Click Data**
-
-                Click on points in the graph.
-            """),
-            html.Pre(id='click-data', style=styles['pre']),
-        ], className='three columns'),
-
-        html.Div([
-            dcc.Markdown("""
-                **Selection Data**
-
-                Choose the lasso or rectangle tool in the graph's menu
-                bar and then select points in the graph.
-
-                Note that if `layout.clickmode = 'event+select'`, selection data also
-                accumulates (or un-accumulates) selected data if you hold down the shift
-                button while clicking.
-            """),
-            html.Pre(id='selected-data', style=styles['pre']),
-        ], className='three columns'),
-
-        html.Div([
-            dcc.Markdown("""
-                **Zoom and Relayout Data**
-
-                Click and drag on the graph to zoom or click on the zoom
-                buttons in the graph's menu bar.
-                Clicking on legend items will also fire
-                this event.
-            """),
-            html.Pre(id='relayout-data', style=styles['pre']),
-        ], className='three columns')
-    ])
+    html.Div([
+        dcc.Graph(
+            id='fractal'
+            ),
+    ], style={'display': 'inline-block', 'width': '49%', 'color':'black'}),
+    html.Div([
+        dcc.Graph(id='sequence'),
+    ], style={'display': 'inline-block', 'width': '49%'}),
+    html.Div([
+        dcc.Graph(id='julia'),
+    ], style={'display': 'inline-block', 'width': '49%'}),
+    html.Button('Submit', id='submit-val', n_clicks=0),
 ])
 
-
 @app.callback(
-    Output('basic-interactions', 'figure'),
-    Input('z', 'value')
-    
+    Output('julia', 'figure'),
+    Input('fractal', 'hoverData')
 )
-def gen_figure(value):
-    print(value)
-    print(type(value))
-    fig = px.scatter(df, x="x", y="y", color="fruit", custom_data=["customdata"])
+def gen_julia(hover_data):
+    re = 0
+    im = 0
+    if (hover_data != None):
+        points = hover_data['points'][0]
+        re = points['x']
+        im = points['y']
+    
+    c = fracts.complex_matrix(-2, 2, -2, 2, pixel_density=40)
+    members = fracts.get_members_julia(c, parameter=complex(re, im), num_iterations=20)
+    fig = px.scatter(x=members.real, y = members.imag, title='Julia')
 
-    fig.update_layout(clickmode='event+select')
-
-    fig.update_traces(marker_size=20)
-
+    fig.update_layout(
+        clickmode='event+select', 
+        plot_bgcolor='rgb(50, 50, 50)', 
+        paper_bgcolor="rgba(0, 0, 200, 0)",
+        xaxis_title="Re",
+        yaxis_title="Im"
+        )
+    fig.update_traces(marker_color='green', marker_size=2)
     return fig
 
 @app.callback(
-    Output('hover-data', 'children'),
-    Input('basic-interactions', 'hoverData'))
-def display_hover_data(hoverData):
-    return json.dumps(hoverData, indent=2)
+    Output('fractal', 'figure'),
+    Input('submit-val', 'n_clicks')
+    
+)
+def gen_fractal(value):
+    c = fracts.complex_matrix(-2, 0.5, -1.5, 1.5, pixel_density=40)
+    members = fracts.get_members(c, num_iterations=20)
+    fig = px.scatter(x=members.real, y = members.imag, title='Mandlebrot')
 
+    fig.update_layout(
+        clickmode='event+select', 
+        plot_bgcolor='rgb(50, 50, 50)', 
+        paper_bgcolor="rgba(0, 0, 200, 0)",
+        xaxis_title="Re",
+        yaxis_title="Im"
+        )
+    fig.update_traces(marker_size=2)
+    #fig.update_traces(marker_size=5)
 
+    
+
+    return fig
 @app.callback(
-    Output('click-data', 'children'),
-    Input('basic-interactions', 'clickData'))
-def display_click_data(clickData):
-    return json.dumps(clickData, indent=2)
+    Output('sequence', 'figure'),
+    Input('fractal', 'hoverData')
+    
+)
+def gen_sequence(hover_data):
+    re = 0
+    im = 0
+    if (hover_data != None):
+        points = hover_data['points'][0]
+        re = points['x']
+        im = points['y']
 
+    (xList, yList) = fracts.first_n_elements(complex(re, im), 10)
+    
+    fig = px.scatter(x=xList, y=yList, title='Sequence')
 
-@app.callback(
-    Output('selected-data', 'children'),
-    Input('basic-interactions', 'selectedData'))
-def display_selected_data(selectedData):
-    return json.dumps(selectedData, indent=2)
+    fig.update_layout(
+        clickmode='event+select', 
+        plot_bgcolor='rgb(50, 50, 50)', 
+        paper_bgcolor="rgba(0, 0, 200, 0)",
+        xaxis_title="Iteration",
+        yaxis_title="Magnitude"
+        )
 
+    fig.update_traces(marker_color='red')
 
-@app.callback(
-    Output('relayout-data', 'children'),
-    Input('basic-interactions', 'relayoutData'))
-def display_relayout_data(relayoutData):
-    return json.dumps(relayoutData, indent=2)
+    
+
+    return fig
 
 
 if __name__ == '__main__':
