@@ -20,7 +20,7 @@ server = app.server
 app.layout = html.Div([
     html.Div([
         dcc.Graph(
-            id='fractal'
+            id='mandlebrot'
             ),
     ], style={'display': 'inline-block', 'width': '49%', 'color':'black'}),
     html.Div([
@@ -35,7 +35,7 @@ app.layout = html.Div([
 
 @app.callback(
     Output('julia', 'figure'),
-    Input('fractal', 'hoverData')
+    Input('mandlebrot', 'hoverData')
 )
 def gen_julia(hover_data):
     re = 0
@@ -60,11 +60,10 @@ def gen_julia(hover_data):
     return fig
 
 @app.callback(
-    Output('fractal', 'figure'),
+    Output('mandlebrot', 'figure'),
     Input('submit-val', 'n_clicks')
-    
 )
-def gen_fractal(value):
+def gen_mandlebrot(value):
     c = fracts.complex_matrix(-2, 0.5, -1.5, 1.5, pixel_density=40)
     members = fracts.get_members(c, num_iterations=20)
     fig = px.scatter(x=members.real, y = members.imag, title='Mandlebrot')
@@ -81,7 +80,7 @@ def gen_fractal(value):
 
 @app.callback(
     Output('sequence', 'figure'),
-    Input('fractal', 'hoverData')
+    Input('mandlebrot', 'hoverData')
 )
 def gen_sequence(hover_data):
     re = 0
