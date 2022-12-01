@@ -3,6 +3,7 @@ from PIL import Image
 import multiprocessing as mp
 from mandelbrot import MandelbrotSet
 from viewport import Viewport
+import os
 # c = fracts.complex_matrix(-2, 0.5, -1.5, 1.5, pixel_density=512)
 # image = Image.fromarray(~fracts.is_stable(c, num_iterations=20))
 # image.show()
@@ -30,7 +31,7 @@ for pixel in Viewport(image, center=-0.7435 + 0.1314j, width=0.002):
     instability = 1 - mandelbrot_set.stability(c, smooth=True)
     pixel.color = int(instability * 255)
 
-image.show()
+image.save(os.path.join("assets", "image") + ".jpg")
 
 # # scale = .0075 / 2
 # # width, height = 1024, 1024
