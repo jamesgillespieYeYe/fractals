@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 from PIL import Image
+import json
+
 
 @dataclass
 class Viewport:
@@ -43,3 +45,21 @@ class Pixel:
                 * self.viewport.scale
                 + self.viewport.offset
         )
+
+class ViewportData:
+    center_re: float
+    center_im: float
+    width: float
+    image_height: int
+    image_width: int
+
+    def __init__(self, viewport:Viewport):
+        self.center_re = viewport.center.real
+        self.center_im = viewport.center.imag
+        self.width = viewport.width
+        self.image_height = viewport.image.height
+        self.image_width = viewport.image.width
+
+
+    def toJson(self):
+        return json.dumps(self, default=lambda o: o.__dict__)
