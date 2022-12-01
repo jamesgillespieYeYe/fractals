@@ -30,8 +30,39 @@ app.layout = html.Div([
                 ),
 
         ]),
+        html.Div([
+            html.H5('Iterations', style={'textAlign':'center', 'color':'white'}),
+            dcc.Slider(10, 40, 1,
+                value=21,
+                marks=None,
+                tooltip={"placement": "bottom", "always_visible": True},
+                id='mandlebrot-iterations-selector'
+                ),
+
+        ]),
         
     ], style={'display': 'inline-block', 'width': '49%', 'color':'black'}),
+    html.Div([
+        dcc.Graph(id='julia'),
+        html.Div([
+            html.H5('Pixel Density', style={'textAlign':'center', 'color':'white'}),
+            dcc.Slider(10, 120, 20,
+                value=40,
+                id='julia-density-selector'
+                ),
+
+        ]),
+        html.Div([
+            html.H5('Iterations', style={'textAlign':'center', 'color':'white'}),
+            dcc.Slider(10, 40, 1,
+                value=21,
+                marks=None,
+                tooltip={"placement": "bottom", "always_visible": True},
+                id='julia-iterations-selector'
+                ),
+
+        ]),
+    ], style={'display': 'inline-block', 'width': '49%'}),
     html.Div([
         dcc.Graph(id='sequence'),
         html.Div([
@@ -40,18 +71,7 @@ app.layout = html.Div([
                 value=21,
                 marks=None,
                 tooltip={"placement": "bottom", "always_visible": True},
-                id='num-iterations-selector'
-                ),
-
-        ]),
-    ], style={'display': 'inline-block', 'width': '49%'}),
-    html.Div([
-        dcc.Graph(id='julia'),
-        html.Div([
-            html.H5('Pixel Density', style={'textAlign':'center', 'color':'white'}),
-            dcc.Slider(10, 120, 20,
-                value=40,
-                id='julia-density-selector'
+                id='sequence-iterations-selector'
                 ),
 
         ]),
@@ -63,9 +83,10 @@ app.layout = html.Div([
 @app.callback(
     Output('julia', 'figure'),
     Input('mandlebrot', 'hoverData'),
-    Input('julia-density-selector', 'value')
+    Input('julia-density-selector', 'value'),
+    Input('julia-iterations-selector', 'value')
 )
-def gen_julia(hover_data, value):
+def gen_julia(hover_data, value, iterations):
     re = 0
     im = 0
     if (hover_data != None):
@@ -74,7 +95,7 @@ def gen_julia(hover_data, value):
         im = points['y']
     
     c = fracts.complex_matrix(-2, 2, -2, 2, pixel_density=value)
-    members = fracts.get_members_julia(c, parameter=complex(re, im), num_iterations=20)
+    members = fracts.get_members_julia(c, parameter=complex(re, im), num_iterations=iterations)
     fig = px.scatter(x=members.real, y = members.imag, title='Julia')
 
     fig.update_layout(
@@ -96,7 +117,7 @@ def gen_julia(hover_data, value):
 @app.callback(
     Output('mandlebrot', 'figure'),
     Input('mandlebrot-density-selector', 'value'),
-    Input('num-iterations-selector', 'value')
+    Input('mandlebrot-iterations-selector', 'value')
 )
 def gen_mandlebrot(density, iterations):
     c = fracts.complex_matrix(-2, 0.5, -1.5, 1.5, pixel_density=density)
@@ -121,7 +142,7 @@ def gen_mandlebrot(density, iterations):
 @app.callback(
     Output('sequence', 'figure'),
     Input('mandlebrot', 'hoverData'),
-    Input('num-iterations-selector', 'value')
+    Input('sequence-iterations-selector', 'value')
 )
 def gen_sequence(hover_data, iterations):
     re = 0
@@ -133,7 +154,7 @@ def gen_sequence(hover_data, iterations):
 
     (xList, yList) = fracts.first_n_elements(complex(re, im), iterations)
     
-    fig = px.scatter(x=xList, y=yList, title='Sequence')
+    fig = px.scatter(x=xList, y=yList, title='Sequence (Magnitude)')
 
     fig.update_layout(
         clickmode='event+select', 

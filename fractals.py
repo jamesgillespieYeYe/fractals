@@ -29,6 +29,16 @@ def get_members_julia(candidates, parameter, num_iterations):
     mask = is_stable_julia(candidates, parameter, num_iterations)
     return candidates[mask]
 #--------------------------------------------------------
+def escape_count(c, max_iterations, bound=2):
+    z = 0
+    for iteration in range(max_iterations):
+        z = z**2 + c
+        if abs(z) > bound:
+            return iteration
+    return max_iterations
+
+def stability(c, max_iterations, bound=2):
+    return escape_count(c, max_iterations, bound) / max_iterations
 
 def sequence(c, z=0):
     z = 0
