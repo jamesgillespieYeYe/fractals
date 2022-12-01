@@ -28,7 +28,8 @@ layout = html.Div(children=[
             """),
             html.Pre(id='relayout-data'),
         ], className='three columns'),
-    dcc.Store(id='viewport_data'),
+    dcc.Store(id='viewport_data', storage_type='session'),
+    dcc.Store(id='generated', storage_type='session')
 ])
 
 @callback(
@@ -37,33 +38,73 @@ layout = html.Div(children=[
 def display_relayout_data(relayoutData):
     return json.dumps(relayoutData, indent=2)
 
+
+def pixel_center(relay):
+    print("relay asdfasdf:", relay)
+    xMin = relay['xaxis.range[0]']
+    xMax = relay['xaxis.range[1]']
+    yMin = relay['yaxis.range[1]']
+    yMax = relay['yaxis.range[0]']
+    x = (xMax - xMin) // 2 + xMin
+    y = (yMax - yMin) // 2 + yMin
+    print(x, y)
+    return (x, y)
+def offset(center, width):
+    return center + complex(-width, width) / 2
+def scale(width, image_width=256):
+    return width / image_width
+
+def pixel_to_complex(x:int, y:int, scale, offset):
+    return complex(x, -y)*scale + offset
+
 @callback(
     Output('picture', 'figure'),
     Output('viewport_data', 'data'),
+    Output('generated', 'data'),
     Input('picture', 'relayoutData'),
-    Input('viewport_data', 'data')
+    Input('viewport_data', 'data'),
+    Input('generated', 'data')
 )
-def display_image(relay, data):
-    viewport = proxy_viewport()
-    if (relay != None):
-        if 'autosize' not in relay:
-            #Pixel Coordinates
-            xMin = relay['xaxis.range[0]']
-            xMax = relay['xaxis.range[1]']
-            yMin = relay['yaxis.range[0]']
-            yMax = relay['yaxis.range[1]']
+def display_image(relay, data, generated):
+    print("generated:", generated)
+    if generated == None:
+        print("Generating initial image")
+        print(generated)
+        generated = json.dumps("{True}")
+        generate_image(center = -1, width = 2)
+        data = json.dumps({'center_re':-1, 'center_im':0,  'width':2})
+    else:
 
-            xCenter = (xMin + xMax) // 2
-            yCenter = (yMin + yMax) // 2
-            #Retrieve viewport from data
-            stored = json.loads(data)
-            print("stored: ", stored)
-            proxyImage = Image.new(mode="L", size=(stored['image_width'], stored['image_height']))
-            oldViewport = Viewport(proxyImage, center = complex(stored['center_re'], stored['center_im']), width = stored['width'])
-            newWidth = ((xMax - xMin) / (proxyImage.width)) * oldViewport.width
-            print("newWidth: ", newWidth)
-            pixel = Pixel(viewport=oldViewport, x=xCenter, y=yCenter)
-            viewport = generate_image(center=complex(pixel), width=newWidth)
+        
+        print(relay)
+        if relay != None:
+            if 'xaxis.autorange' in relay and 'yaxis.autorange' in relay:
+                print("Reseting to default")
+                generate_image(center = -1, width = 2)
+                data = json.dumps({'center_re':-1, 'center_im':0,  'width':2})
+            elif 'xaxis.range[0]' in relay:
+                print("Change")
+                
+                data_dict = json.loads(data)
+                print(type(data_dict))
+                data_dict['width'] = data_dict['width'] / 2
+
+                
+
+                pcenter = pixel_center(relay)
+                ccenter = pixel_to_complex(pcenter[0], pcenter[1], 
+                    scale(data_dict['width']), 
+                    offset(complex(data_dict['center_re'], 
+                    data_dict['center_im']), data_dict['width'])
+                    )
+                data_dict['center_re'] = ccenter.real
+                data_dict['center_im'] = ccenter.imag
+
+
+                generate_image(center=complex(data_dict['center_re'], data_dict['center_im']), width=data_dict['width'])
+                data = json.dumps(data_dict)
+                
+
     img = np.array(Image.open(image_path))
     fig = px.imshow(img, color_continuous_scale='gray')
     fig.update_layout(coloraxis_showscale=False)
@@ -73,9 +114,6 @@ def display_image(relay, data):
         plot_bgcolor='rgb(50, 50, 50)', 
         paper_bgcolor="rgba(0, 0, 200, 0)",
     )
-    viewport_data = ViewportData(viewport).toJson()
-    #print("viewport data: ", viewport_data)
     
-    
-    
-    return (fig, viewport_data)
+    print("data: ", data)
+    return (fig, data, generated)

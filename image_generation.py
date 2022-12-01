@@ -21,4 +21,6 @@ def generate_image(center=-0.7435 + 0.1314j, width=0.002, max_iterations=256, es
 
     image.save(os.path.join("assets", "image") + ".jpg")
     return viewport
-    
+
+if __name__ == '__main__':
+    generate_image(center = -1, width = 2)
