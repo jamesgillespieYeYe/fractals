@@ -60,8 +60,10 @@ def display_image(relay, data):
             print("stored: ", stored)
             proxyImage = Image.new(mode="L", size=(stored['image_width'], stored['image_height']))
             oldViewport = Viewport(proxyImage, center = complex(stored['center_re'], stored['center_im']), width = stored['width'])
+            newWidth = ((xMax - xMin) / (proxyImage.width)) * oldViewport.width
+            print("newWidth: ", newWidth)
             pixel = Pixel(viewport=oldViewport, x=xCenter, y=yCenter)
-            viewport = generate_image(center=complex(pixel))
+            viewport = generate_image(center=complex(pixel), width=newWidth)
     img = np.array(Image.open(image_path))
     fig = px.imshow(img, color_continuous_scale='gray')
     fig.update_layout(coloraxis_showscale=False)
