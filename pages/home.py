@@ -27,7 +27,7 @@ layout = html.Div([
             ),
         html.Div([
             html.H5('Pixel Density', style={'textAlign':'center', 'color':'white'}),
-            dcc.Slider(10, 120, 20,
+            dcc.Slider(10, 200, 20,
                 value=40,
                 id='mandlebrot-density-selector'
                 ),
