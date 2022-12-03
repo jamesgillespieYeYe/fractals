@@ -85,6 +85,12 @@ def stretch_compress(data:list, dim:int):
 
     return newData
 
+def ex_R3toR1(data):
+    for row in data:
+        for i in range(0, len(row)):
+            row[i] = row[i][0] ** 2 + row[i][1] 
+
+    return data
 
 
 
@@ -92,6 +98,11 @@ def stretch_compress(data:list, dim:int):
 
 def color_image(data, map, dim, cMin=None, cMax=None, func=None):
     #print(data)
+    if func != None:
+        data = func(data)
+    assert(type(data) == list)
+    assert(type(data[0]) == list)
+    assert(type(data[0][0]) != list)
     if cMin == None:
         cMin = 0
     if cMax == None:
@@ -122,9 +133,18 @@ data = []
 for i in range(10, 500):
     row = []
     for j in range(10, 500):
-        row.append(i*j)
+        row.append(i)
     data.append(row)
-color_image(data, colormap, 100, 100, 400)
+color_image(data, colormap, 100, 100, 200)
+exit()
+data = []
+for i in range(20):
+    row = []
+    for j in range(20):
+        row.append([i,j])
+    data.append(row)
+print(data)
+color_image(data, colormap, 100, 100, 400, func=ex_R3toR1)
 
 # print(type(colormap))
 # print(len(colormap))
