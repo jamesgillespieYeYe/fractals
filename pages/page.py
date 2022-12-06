@@ -7,8 +7,10 @@ import pandas as pd
 import os
 import numpy as np
 from PIL import Image
-from image_generation import generate_image, proxy_viewport
+from image_generation import *
 from viewport import *
+import fractals as fracts
+
 
 default_width = 2
 
@@ -111,12 +113,40 @@ def get_width_ratio(relay, default=256):
 #--------------------------------------------------------
 
 @callback(
+    Output('picture4', 'figure'),
+    Input('picture', 'clickData'),
+    Input('viewport_data', 'data'),
+    Input('pixels', 'value')
+)
+def gen_julia_image(click_data, viewport_data, num_pixels):
+    print("click data: ", click_data)
+    points = click_data['points'][0]
+    x = points['x']
+    y = points['y']
+
+    if viewport_data != None and 'width' in viewport_data:
+        print("Can generate points")
+        data_dict = json.loads(viewport_data)
+        #Scale
+        scale_ratio = scale(width=data_dict['width'], image_width=num_pixels)
+        print("scale: ", scale_ratio)
+        #Offset
+        center_re = data_dict['center_re']
+        center_im = data_dict['center_im']
+        center = complex(center_re, center_im)
+        offset_value = offset(center=center, width=data_dict['width'])
+        print("offset_value: ", offset_value)
+        complex_point = pixel_to_complex(x=x, y=y, scale=scale_ratio, offset=offset_value)
+        print("Complex point: ", complex_point)
+        #generate_image(center=complex(data_dict['center_re'], data_dict['center_im']), width=data_dict['width'], dimension=num_pixels, colormap=True, map=map_name)
+        generate_image_julia(parameter=complex_point, center=0)
+@callback(
     Output('picture3', 'figure'),
     Input('picture', 'hoverData'),
     Input('viewport_data', 'data'),
     Input('pixels', 'value')
 )
-def gen_picture3(hover_data, viewport_data, num_pixels):
+def gen_map(hover_data, viewport_data, num_pixels):
     print("hoverdata: ", hover_data)
     print('viewport data: ', viewport_data)
     if (hover_data == None):
@@ -145,9 +175,17 @@ def gen_picture3(hover_data, viewport_data, num_pixels):
         print("offset_value: ", offset_value)
         complex_point = pixel_to_complex(x=x, y=y, scale=scale_ratio, offset=offset_value)
         print("Complex point: ", complex_point)
+        c = fracts.complex_matrix(-2, 2, -2, 2, pixel_density=40)
+        members = fracts.get_members_julia(c, parameter=complex_point, num_iterations=20)
+        if (len(members) == 0):
+            return no_update
+        print("members: ", members)
+        fig = px.scatter(x=members.real, y = members.imag, title='Julia')
+        return fig
 
     else:
         print("Necessary information to generate points not available")
+        return no_update
 
 
     
@@ -195,7 +233,7 @@ def display_image(relay, data, generated, num_pixels, map_name):
         print("Generating initial image")
         print(generated)
         generated = json.dumps("{True}")
-        generate_image(center = -1, width = default_width, dimension=num_pixels, map=map_name)
+        generate_image(center = -1, width = default_width, dimension=num_pixels, colormap=True,  map=map_name)
         data = json.dumps({'center_re':-1, 'center_im':0,  'width':default_width})
     else:
 

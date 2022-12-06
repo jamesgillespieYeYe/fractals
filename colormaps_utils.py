@@ -2,23 +2,6 @@ import matplotlib.cm
 import matplotlib
 import numpy as np
 from PIL import Image
-#colormap = matplotlib.cm.get_cmap("viridis").colors
-# pixels = [
-#    [(54, 54, 54), (232, 23, 93), (71, 71, 71), (168, 167, 167)],
-#    [(204, 82, 122), (54, 54, 54), (168, 167, 167), (232, 23, 93)],
-#    [(71, 71, 71), (168, 167, 167), (54, 54, 54), (204, 82, 122)],
-#    [(168, 167, 167), (204, 82, 122), (232, 23, 93), (54, 54, 54)]
-# ]
-
-# # Convert the pixels into an array using numpy
-# array = np.array(pixels, dtype=np.uint8)
-# print(array)
-# # Use PIL to create an image from the new array of pixels
-# new_image = Image.fromarray(array)
-# new_image.show()
-
-
-# exit()
 
 def denormalize(palette):
     return [  
@@ -52,15 +35,10 @@ def get_max(data):
 # d' in newData: range[0] <= d' <= range[1] 
 def transform(data: list, range:tuple):
     dMin = get_min(data)
-    print(dMin)
     dMax = get_max(data)
-    print(dMax)
-   
     range_d = dMax - dMin
     range_c = range[1] - range[0]
     slope = float(range_c / range_d)
-    print(slope)
-    print(dMax*slope - slope*dMin)
     newData = []
     for row in data:
         newRow = []
@@ -108,8 +86,6 @@ def color_image(data, map, dim, cMin=None, cMax=None, func=None):
     if cMax == None:
         cMax = len(map) - 1
     data = transform(data, (cMin, cMax))
-    print(data)
-    #exit()
     data = stretch_compress(data, dim)
     #Format the pixels
     pixels = []
@@ -122,7 +98,7 @@ def color_image(data, map, dim, cMin=None, cMax=None, func=None):
     assert(len(pixels[0]) == dim)
     array = np.array(pixels, dtype=np.uint8)
     new_image = Image.fromarray(array)
-    new_image.show()
+    return new_image
 
 
 colormap = matplotlib.cm.get_cmap("twilight_shifted").colors
@@ -133,9 +109,9 @@ data = []
 for i in range(10, 500):
     row = []
     for j in range(10, 500):
-        row.append(i)
+        row.append(i*j)
     data.append(row)
-color_image(data, colormap, 100, 100, 200)
+color_image(data, colormap, 100, 100, 200).show()
 exit()
 data = []
 for i in range(20):
@@ -144,7 +120,7 @@ for i in range(20):
         row.append([i,j])
     data.append(row)
 print(data)
-color_image(data, colormap, 100, 100, 400, func=ex_R3toR1)
+color_image(data, colormap, 100, 100, 400, func=ex_R3toR1).show()
 
 # print(type(colormap))
 # print(len(colormap))
